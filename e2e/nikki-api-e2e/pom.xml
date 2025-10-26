@@ -34,7 +34,12 @@
                 <configuration>
                     <source>11</source>
                     <target>11</target>
-                </configuration> </plugin> <plugin> <groupId>com.thoughtworks.gauge.maven</groupId> <artifactId>gauge-maven-plugin</artifactId> <version>1.4.3</version>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.thoughtworks.gauge.maven</groupId>
+                <artifactId>gauge-maven-plugin</artifactId>
+                <version>1.4.3</version>
                 <executions>
                     <execution>
                         <phase>test</phase>

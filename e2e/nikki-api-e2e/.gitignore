@@ -12,3 +12,8 @@ gauge_bin
 
 # Gauge - java class target dir
 target
+
+# IDE specific files
+.vscode/
+.idea/
+*.iml
