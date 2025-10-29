@@ -9,6 +9,7 @@
     <properties>
         <gauge.java.version>0.13.0</gauge.java.version>
         <kotlin.version>2.2.20</kotlin.version>
+        <gauge.maven.version>1.6.4</gauge.maven.version>
     </properties>
 
     <dependencies>
@@ -30,7 +31,7 @@
             <plugin>
                 <groupId>com.thoughtworks.gauge.maven</groupId>
                 <artifactId>gauge-maven-plugin</artifactId>
-                <version>1.4.3</version>
+                <version>${gauge.maven.version}</version>
                 <executions>
                     <execution>
                         <phase>test</phase>
@@ -38,6 +39,7 @@
                             <specsDir>specs</specsDir>
                         </configuration>
                         <goals>
+                            <goal>validate</goal>
                             <goal>execute</goal>
                         </goals>
                     </execution>
