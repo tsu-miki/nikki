@@ -8,8 +8,10 @@
 
     <properties>
         <gauge.java.version>0.13.0</gauge.java.version>
+        <java.version>21</java.version>
         <kotlin.version>2.2.20</kotlin.version>
         <gauge.maven.version>1.6.4</gauge.maven.version>
+        <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
     </properties>
 
     <dependencies>
@@ -56,6 +58,15 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <sourceDirs>
+                        <sourceDir>src/test/kotlin</sourceDir>
+                    </sourceDirs>
+                    <args>
+                        <arg>-Xjsr305=strict</arg>
+                    </args>
+                    <jvmTarget>${java.version}</jvmTarget>
+                </configuration>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <version>${kotlin.version}</version>
             </plugin>
