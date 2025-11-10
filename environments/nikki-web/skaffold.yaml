@@ -1,0 +1,21 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: nikki-web
+build:
+  artifacts:
+    - image: nikki-web
+      context: ../../app/nikki-web
+      docker:
+        dockerfile: Dockerfile
+  tagPolicy:
+    gitCommit:
+      variant: AbbrevCommitSha
+  local:
+    push: false
+    useBuildkit: true
+manifests:
+  helm:
+    releases:
+      - name: nikki-web
+        chartPath: /helm
