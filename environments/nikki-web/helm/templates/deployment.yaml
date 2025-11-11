@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nikki-web
+  labels:
+    app: nikki-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nikki-web
+  template:
+    metadata:
+      labels:
+        app: nikki-web
+    spec:
+      containers:
+      - name: nikki-web
+        image: nikki-web:{{ .Values.imageTag }}
+        ports:
+        - containerPort: 80

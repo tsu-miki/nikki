@@ -18,4 +18,6 @@ manifests:
   helm:
     releases:
       - name: nikki-web
-        chartPath: /helm
+        chartPath: helm
+        setValueTemplates:
+          imageTag: "{{.IMAGE_TAG}}"
