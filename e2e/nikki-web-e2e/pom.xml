@@ -3,20 +3,20 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>gauge_kotlin_maven</groupId>
-    <artifactId>gauge_kotlin_maven</artifactId>
+    <groupId>com.nikki</groupId>
+    <artifactId>nikki-web-e2</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <kotlin.version>2.2.20</kotlin.version>
         <kotlin.compiler.jvmTarget>${java.version}</kotlin.compiler.jvmTarget>
         <gauge.java.version>0.13.0</gauge.java.version>
         <gauge.maven.version>1.6.4</gauge.maven.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <selenide.version>7.12.0</selenide.version>
     </properties>
-
 
     <dependencies>
         <dependency>
@@ -29,6 +29,11 @@
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>${selenide.version}</version>
         </dependency>
     </dependencies>
 
