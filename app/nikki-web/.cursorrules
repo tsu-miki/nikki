@@ -1,0 +1,414 @@
+# nikki-web 実装ルール
+
+## プロジェクト概要
+- **フレームワーク**: Lit (Web Components)
+- **言語**: TypeScript
+- **ビルドツール**: Vite (Rolldown)
+- **アーキテクチャ思想**: Layer型とFeature型のハイブリッド構成
+
+## ディレクトリ構成の基本原則
+
+### 1. 分割の方向性
+- **Feature型（機能別）**: 基本はこちらで設計。凝集度を高め、影響範囲を限定する
+- **Layer型（技術別）**: 共通化が必要な部分で使用。依存関係を整理する
+
+### 2. ディレクトリ構造
+
+```
+src/
+├── assets/            # 画像、フォントなどの静的リソース
+├── components/        # アプリ全体で共有する汎用UIパーツ
+│   ├── ui/            # デザインシステム的な最小単位（Button, Modal, Input等）
+│   └── model/         # 特定のデータモデルに紐づくが、機能横断的なもの
+├── config/            # 環境変数や定数設定
+├── features/          # ★核心部分：機能ごとのドメイン領域
+│   ├── auth/          # 例：認証機能
+│   │   ├── api/       # 認証に関するAPI通信処理
+│   │   ├── components/# ログインフォームなど、この機能専用のLitコンポーネント
+│   │   ├── controllers/# ロジックの再利用単位（状態管理、ビジネスロジック）
+│   │   ├── types/     # この機能だけの型定義
+│   │   └── index.ts   # 外部公開するエントリポイント
+│   └── users/         # 例：ユーザー管理機能
+├── lib/               # 外部ライブラリの設定（Axios, Firebase, Lit Localizationなど）
+├── providers/         # アプリ全体のDI設定やContextの初期化（Lit Contextなど）
+├── routes/            # ルーティング設定（Vaadin RouterやLit Routerなど）
+├── stores/            # グローバルな状態管理（MobX, Signals, Reduxなど）
+├── styles/            # 共有CSS変数（Design Tokens）、リセットCSS
+├── types/             # アプリ全体で共有する型定義（User, APIResponseなど）
+├── utils/             # 日付整形などの純粋なヘルパー関数
+├── App.ts             # アプリケーションのルートコンポーネント
+└── main.ts            # Viteのエントリーポイント
+```
+
+## コメントの記述ルール
+
+### 基本方針
+コードは**自己説明的**であるべきで、コメントは必要最低限にとどめる。
+
+### コメントを書くべき場合
+1. **Why（なぜ）を説明する時**
+   - 複雑なビジネスロジックの背景
+   - 一見不自然に見える実装の理由
+   ```typescript
+   // Safari 15以下でバグが発生するため、この実装が必要
+   const result = complexWorkaround()
+   ```
+
+2. **外部仕様への参照**
+   - API仕様書へのリンク
+   - 外部ライブラリのドキュメント参照
+   ```typescript
+   // See: https://api.example.com/docs#rate-limit
+   const MAX_RETRY = 3
+   ```
+
+3. **TODO/FIXME/NOTE**
+   - 一時的な対応や今後の改善点
+   ```typescript
+   // TODO: パフォーマンス改善が必要
+   // FIXME: エッジケースの処理が不完全
+   ```
+
+### コメントを書かない場合
+1. **What（何をしているか）の説明**
+   - コード自体で理解できる内容
+   ```typescript
+   // Bad ❌
+   // ユーザー名を取得する
+   const userName = user.name
+   
+   // Good ✅（コメント不要）
+   const userName = user.name
+   ```
+
+2. **関数・変数の説明**
+   - 名前から明らかな場合
+   ```typescript
+   // Bad ❌
+   /**
+    * 日付をフォーマットする関数
+    */
+   export const formatDate = (date: Date) => { }
+   
+   // Good ✅（関数名で十分）
+   export const formatDate = (date: Date) => { }
+   ```
+
+3. **JSDoc（原則不要）**
+   - TypeScriptの型定義で十分な場合
+   - 公開APIライブラリでない限り不要
+   ```typescript
+   // Bad ❌（過剰）
+   /**
+    * ボタンコンポーネント
+    * @param variant - ボタンのバリエーション
+    * @param disabled - 無効化フラグ
+    */
+   
+   // Good ✅（型定義で十分）
+   @customElement('ui-button')
+   export class Button extends LitElement {
+     @property({ type: String }) variant: 'primary' | 'secondary' = 'primary'
+     @property({ type: Boolean }) disabled = false
+   }
+   ```
+
+### CSS/スタイルのコメント
+- セクション区切りのコメントは不要
+- CSS変数定義のグループ化も不要
+
+```css
+/* Bad ❌ */
+/* Colors */
+--color-primary: #3b82f6;
+/* Spacing */
+--spacing-md: 1rem;
+
+/* Good ✅ */
+--color-primary: #3b82f6;
+--spacing-md: 1rem;
+```
+
+## 実装ルール
+
+### Features（機能単位）の設計
+
+#### 原則
+1. **高凝集・疎結合**: 1つのfeatureは独立して動作し、他のfeatureへの依存を最小限にする
+2. **URL/画面単位での分割**: エンジニア以外とも共通認識を持てる単位で分割する
+3. **エントリポイントの明確化**: `index.ts`で外部公開するものを明示する
+
+#### ファイル配置ルール
+
+```typescript
+// features/[feature-name]/index.ts
+// 外部に公開するもののみexportする
+export { FeatureComponent } from './components/FeatureComponent'
+export type { FeatureData } from './types'
+export { useFeatureController } from './controllers/useFeatureController'
+```
+
+#### 禁止事項
+- ❌ feature間での直接的な相互依存（`features/auth`から`features/users`を直接import等）
+- ❌ feature内部の実装詳細を外部に漏らす（必ず`index.ts`経由で公開）
+
+### Components（共通UIパーツ）の設計
+
+#### components/ui/
+- **責務**: 純粋なプレゼンテーションコンポーネント
+- **特徴**: ドメインロジックを持たない、再利用可能な最小単位
+- **例**: `Button`, `Input`, `Modal`, `Card`, `Badge`
+
+```typescript
+// components/ui/Button.ts
+import { LitElement, html, css } from 'lit'
+import { customElement, property } from 'lit/decorators.js'
+
+@customElement('ui-button')
+export class Button extends LitElement {
+  @property({ type: String }) variant: 'primary' | 'secondary' = 'primary'
+  @property({ type: Boolean }) disabled = false
+
+  static styles = css`
+    /* スタイル定義 */
+  `
+
+  render() {
+    return html`
+      <button ?disabled=${this.disabled} class=${this.variant}>
+        <slot></slot>
+      </button>
+    `
+  }
+}
+```
+
+#### components/model/
+- **責務**: 特定のデータモデルに紐づくが、複数のfeatureで使用されるコンポーネント
+- **特徴**: ドメイン知識を持つが、機能横断的
+- **例**: `UserAvatar`, `DateDisplay`, `StatusBadge`
+
+### Controllers（ロジックの再利用）
+
+#### 役割
+- Lit Controllersパターンを使用した、状態管理とビジネスロジックの抽出
+- コンポーネントから複雑なロジックを分離し、テスタビリティを向上
+
+```typescript
+// features/diary/controllers/DiaryController.ts
+import { ReactiveController, ReactiveControllerHost } from 'lit'
+
+export class DiaryController implements ReactiveController {
+  private host: ReactiveControllerHost
+  entries: DiaryEntry[] = []
+
+  constructor(host: ReactiveControllerHost) {
+    this.host = host
+    host.addController(this)
+  }
+
+  hostConnected() {
+    // 初期化処理
+  }
+
+  async loadEntries() {
+    // ロジック処理
+    this.host.requestUpdate()
+  }
+}
+```
+
+### API通信
+
+#### features/[feature-name]/api/
+- 各機能に関連するAPI通信を配置
+- 共通のAPI設定は`lib/`で管理
+
+```typescript
+// features/diary/api/diaryApi.ts
+import { apiClient } from '@/lib/apiClient'
+import type { DiaryEntry } from '../types'
+
+export const diaryApi = {
+  async getEntries(): Promise<DiaryEntry[]> {
+    const response = await apiClient.get('/diary/entries')
+    return response.data
+  },
+
+  async createEntry(entry: Partial<DiaryEntry>): Promise<DiaryEntry> {
+    const response = await apiClient.post('/diary/entries', entry)
+    return response.data
+  }
+}
+```
+
+### 型定義
+
+#### features/[feature-name]/types/
+- その機能でのみ使用する型定義
+
+#### types/
+- アプリ全体で共有する型定義
+- 共通のデータモデル（User, APIResponse等）
+
+```typescript
+// types/api.ts
+export interface ApiResponse<T> {
+  data: T
+  status: number
+  message?: string
+}
+
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  page: number
+  pageSize: number
+}
+```
+
+### スタイリング
+
+#### 原則
+1. **Design Tokens**: 共通の変数は`styles/tokens.css`で定義
+2. **Shadow DOM**: Litコンポーネントは基本的にShadow DOMを使用
+3. **CSS Custom Properties**: グローバルなテーマ設定に使用
+
+```css
+/* styles/tokens.css */
+:root {
+  /* Colors */
+  --color-primary: #3b82f6;
+  --color-secondary: #6366f1;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+}
+```
+
+### ユーティリティ関数
+
+#### utils/
+- 純粋関数のみ配置
+- 副作用を持たない
+- ドメインロジックを含まない
+
+```typescript
+// utils/date.ts
+export const formatDate = (date: Date, format: string): string => {
+  // 実装
+}
+
+export const isToday = (date: Date): boolean => {
+  const today = new Date()
+  return date.toDateString() === today.toDateString()
+}
+```
+
+### 依存関係のルール
+
+#### 許可される依存の方向
+```
+features/[feature] 
+  ↓ 依存OK
+components/ui, components/model, utils, types, lib, stores
+```
+
+#### 禁止される依存
+- ❌ `features/A` → `features/B` (feature間の直接依存)
+- ❌ `components/ui` → `features/*` (共通コンポーネントからfeatureへの依存)
+- ❌ `utils` → `components/*`, `features/*` (utilsは純粋関数のみ)
+
+### Litコンポーネントの命名規則
+
+#### カスタム要素名
+- ケバブケース必須（Web Components仕様）
+- プレフィックスで分類
+  - `ui-*`: 共通UIコンポーネント（例: `ui-button`, `ui-modal`）
+  - `diary-*`: 日記機能（例: `diary-entry`, `diary-list`）
+  - `app-*`: アプリケーションレベル（例: `app-header`, `app-root`）
+
+```typescript
+// Good
+@customElement('diary-entry-form')
+export class DiaryEntryForm extends LitElement { }
+
+// Bad
+@customElement('diaryForm') // ❌ ケバブケースではない
+@customElement('form')      // ❌ プレフィックスがない
+```
+
+### ファイル・クラス命名規則
+
+- **ファイル名**: PascalCase（例: `DiaryEntry.ts`, `Button.ts`）
+- **クラス名**: PascalCase（例: `DiaryEntry`, `Button`）
+- **Controller**: `*Controller.ts`（例: `DiaryController.ts`）
+- **API**: `*Api.ts`（例: `diaryApi.ts`）
+- **型定義**: `types.ts` または `index.ts`
+
+### テストファイル
+
+- テストファイルは実装ファイルと同じディレクトリに配置
+- 命名規則: `*.test.ts` または `*.spec.ts`
+
+```
+features/diary/
+├── components/
+│   ├── DiaryEntry.ts
+│   └── DiaryEntry.test.ts
+├── controllers/
+│   ├── DiaryController.ts
+│   └── DiaryController.test.ts
+```
+
+## 新機能追加の手順
+
+### 1. featureディレクトリの作成
+```bash
+mkdir -p src/features/[feature-name]/{api,components,controllers,types}
+```
+
+### 2. index.tsの作成
+機能の公開APIを定義
+
+### 3. 型定義の作成
+`types/index.ts`で必要な型を定義
+
+### 4. コンポーネントの実装
+`components/`にLitコンポーネントを実装
+
+### 5. ロジックの実装
+必要に応じて`controllers/`や`api/`を実装
+
+### 6. App.tsへの統合
+ルートコンポーネントに新機能を組み込む
+
+## コードレビューチェックリスト
+
+- [ ] feature間の直接的な依存がないか
+- [ ] 共通化すべきコンポーネントが`features/`内に留まっていないか
+- [ ] 型定義が適切な場所に配置されているか
+- [ ] カスタム要素名がルールに従っているか
+- [ ] `index.ts`で適切にexportしているか
+- [ ] 依存の方向性が正しいか
+- [ ] ユーティリティ関数が純粋関数になっているか
+
+## 参考リンク
+
+- [フロントエンドのディレクトリ設計思想](https://zenn.dev/mybest_dev/articles/c0570e67978673)
+- [Lit公式ドキュメント](https://lit.dev/)
+- [Lit Controllers](https://lit.dev/docs/composition/controllers/)
+

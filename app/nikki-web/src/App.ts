@@ -1,17 +1,15 @@
 import { LitElement, html } from 'lit'
 import { customElement } from 'lit/decorators.js'
 
-@customElement('my-element')
-export class MyElement extends LitElement {
+@customElement('app-root')
+export class App extends LitElement {
   render() {
-    return html`
-    <h1>日記</h1>
-    `
+    return html`<h1>日記</h1>`
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'my-element': MyElement
+    'app-root': App
   }
 }
