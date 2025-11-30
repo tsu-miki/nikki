@@ -1,0 +1,24 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+  name: nikki-api
+build:
+  artifacts:
+    - image: nikki-api
+      context: ../../app/nikki-api
+      docker:
+        dockerfile: Dockerfile
+  tagPolicy:
+    gitCommit:
+      variant: AbbrevCommitSha
+  local:
+    push: false
+    useBuildkit: true
+manifests:
+  helm:
+    releases:
+      - name: nikki-api
+        chartPath: helm
+        setValueTemplates:
+          imageTag: "{{.IMAGE_TAG}}"
+
