@@ -9,7 +9,7 @@ let main args =
     let builder = WebApplication.CreateBuilder(args)
     let app = builder.Build()
     
-    app.MapGet("/", Func<string>(fun () -> "Hello World!")) |> ignore
+    app.MapGet("/v1/systems/ping", Func<string>(fun () -> "pong")) |> ignore
 
     app.MapPost("/nikki", Func<string, Task<IResult>>(fun request ->
         task {
