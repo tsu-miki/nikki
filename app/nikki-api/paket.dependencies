@@ -1,0 +1,4 @@
+source https://api.nuget.org/v3/index.json
+
+storage: none
+nuget FsUnit 7.1.1.0

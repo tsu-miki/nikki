@@ -1,0 +1,14 @@
+STORAGE: NONE
+NUGET
+  remote: https://api.nuget.org/v3/index.json
+    FSharp.Core (10.0.100)
+    FsUnit (7.1.1)
+      FSharp.Core (>= 5.0.2)
+      NUnit (>= 4.0.1)
+    NUnit (4.4)
+      System.Threading.Tasks.Extensions (>= 4.5.4) - restriction: >= net462
+      System.ValueTuple (>= 4.5) - restriction: >= net462
+    System.Runtime.CompilerServices.Unsafe (6.1.2) - restriction: >= net462
+    System.Threading.Tasks.Extensions (4.6.3) - restriction: >= net462
+      System.Runtime.CompilerServices.Unsafe (>= 6.1.2) - restriction: || (>= net462) (&& (< netcoreapp2.1) (>= netstandard2.0) (< netstandard2.1))
+    System.ValueTuple (4.6.1) - restriction: >= net462
